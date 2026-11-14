@@ -1,0 +1,12 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+gradle.properties.local
+*.jks
+*.keystore
+*.pem
+*.key
+outputs/**/*.apk
+outputs/wifi-server/received/
+local-tls/

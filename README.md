@@ -52,7 +52,11 @@
 
 ## Node.js-сервер
 
-Нужны Node.js 18+ и OpenSSL. Откройте PowerShell в корне проекта, укажите LAN IPv4 компьютера и создайте отдельный токен:
+Нужны Node.js 18+ и OpenSSL. Телефон и компьютер должны быть в одной Wi-Fi сети.
+
+### 1. Задайте адрес и токен
+
+Откройте PowerShell в корне проекта. Подставьте IPv4 компьютера из настроек Wi-Fi и придумайте отдельный длинный токен:
 
 ```powershell
 $ip = "<IP компьютера в локальной сети>"
@@ -61,7 +65,7 @@ $tlsDir = Join-Path $PWD "local-tls"
 New-Item -ItemType Directory -Force $tlsDir | Out-Null
 ```
 
-Создайте самоподписанный сертификат с IP в SAN:
+### 2. Создайте сертификат
 
 ```powershell
 openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 365 `
@@ -72,7 +76,7 @@ openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 365 `
   -addext "extendedKeyUsage=serverAuth"
 ```
 
-Запустите сервер:
+### 3. Запустите сервер
 
 ```powershell
 $env:WIFI_SERVER_CERT = (Resolve-Path (Join-Path $tlsDir "server-cert.pem")).Path
@@ -81,11 +85,11 @@ $env:WIFI_UPLOAD_TOKEN = $token
 node .\outputs\wifi-server\server.js
 ```
 
-Разрешите Node.js входящие подключения в брандмауэре Windows для частной сети. Оставьте окно сервера открытым и подключите телефон к той же Wi-Fi сети.
+Разрешите Node.js входящие подключения для частной сети Windows и оставьте окно PowerShell открытым. Сервер принимает заметки в `outputs/wifi-server/received`.
 
 ## Сборка приложения
 
-Для отправки заметок добавьте в локальный корневой `gradle.properties` IP компьютера, тот же токен и отпечаток сертификата:
+Укажите те же сетевые параметры в локальном корневом `gradle.properties`:
 
 ```properties
 wifiServerIp=<IP компьютера>
@@ -93,25 +97,23 @@ wifiUploadToken=<токен сервера>
 wifiCertPin=<SHA-256 отпечаток сертификата, DER, hex>
 ```
 
-Получить отпечаток:
+Отпечаток сертификата:
 
 ```powershell
 openssl x509 -in .\local-tls\server-cert.pem -outform DER | openssl dgst -sha256
 ```
 
-Вставьте hex после `=` в `wifiCertPin`. После смены сертификата pin тоже нужно обновить.
-
-Нужны Android SDK 35 и JDK 17+:
+Скопируйте hex после `=` в `wifiCertPin`. После смены сертификата обновите pin и пересоберите приложение. Для сборки нужны Android SDK 35 и JDK 17+:
 
 ```powershell
 gradle assembleDebug
 ```
 
-APK появится в `app/build/outputs/apk/debug/app-debug.apk`. Для отправки заметки в приложении выберите **Действия → Отправить заметку**.
+APK появится в `app/build/outputs/apk/debug/app-debug.apk`. Для отправки заметки выберите в приложении **Действия → Отправить заметку**.
 
 ## Обновления приложения
 
-Положите APK в `outputs/update/Tekst.apk`, а описание версии — в `outputs/update/latest.json`:
+Положите подписанный APK в `outputs/update/Tekst.apk`, затем заполните `outputs/update/latest.json`:
 
 ```json
 {
@@ -121,8 +123,13 @@ APK появится в `app/build/outputs/apk/debug/app-debug.apk`. Для от
 }
 ```
 
-`versionCode` должен быть больше установленного. На телефоне откройте **Действия → Проверить / скачать APK** и введите `https://<IP компьютера>:8765`. Приложение получит описание по `/update.json`, скачает APK по `/Tekst.apk` и передаст его системному установщику. Для установки поверх текущей версии нужна совместимая подпись.
+`versionCode` должен быть выше версии на телефоне. Откройте **Действия → Проверить / скачать APK** и введите адрес сервера:
 
+```text
+https://<IP компьютера>:8765
+```
+
+Приложение проверит `/update.json`, скачает `/Tekst.apk` и откроет системный установщик. Для обновления поверх установленной версии подпись APK должна совпадать.
 ## Локальные секреты
 
 IP и токен задаются владельцем и не хранятся в исходниках. Не публикуйте `server-key.pem`, токен или локальный `gradle.properties`. Значения, включённые в APK, можно извлечь; используйте отдельный токен для личного сервера.

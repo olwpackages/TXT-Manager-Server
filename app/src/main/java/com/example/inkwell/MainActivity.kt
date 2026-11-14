@@ -21,6 +21,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -81,6 +82,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        window.decorView.systemUiVisibility = 0
         window.statusBarColor = BG
         window.navigationBarColor = BG
         buildScreen()
@@ -95,6 +98,11 @@ class MainActivity : ComponentActivity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(if (compact) 6 else 12), dp(20), dp(if (compact) 4 else 10))
             setBackgroundColor(BG)
+        }
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            view.setPadding(dp(20), dp(if (compact) 6 else 12) + bars.top, dp(20), dp(if (compact) 4 else 10) + bars.bottom)
+            insets
         }
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         val mark = TextView(this).apply {

@@ -1,47 +1,55 @@
 # Текст
 
-![Android](https://img.shields.io/badge/Android-23%2B-3DDC84?logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-Android%20Views-7F52FF?logo=kotlin&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-blue)
+<p>
+  <img alt="Android 6+" src="https://img.shields.io/badge/Android-6%2B-3DDC84?logo=android&logoColor=white">
+  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white">
+  <img alt="Локальная передача" src="https://img.shields.io/badge/передача-HTTPS%20в%20LAN-356859">
+</p>
 
-Минималистичный тёмный TXT-редактор для Android. Поддерживает открытие и сохранение TXT через системный выбор файлов, буфер обмена, отмену/повтор и отправку текста на собственный HTTPS-приёмник в локальной сети.
+Тёмный редактор TXT-файлов для Android с простым экраном и основными действиями под рукой.
 
-## Сборка Android-приложения
+## Возможности
 
-Откройте проект в Android Studio или соберите из корня проекта:
+- Открытие и сохранение `.txt` через системный выбор файлов Android.
+- Последовательные имена заметок: `Заметка.txt`, `Заметка 1.txt`, `Заметка 2.txt` и далее.
+- Вырезание, копирование, вставка, отмена и повтор.
+- Отправка заметок на личный HTTPS-приёмник Node.js в локальной сети.
+
+## Сборка
+
+Нужны Android Studio, JDK 17+ и Android SDK 35.
 
 ```powershell
 gradle assembleDebug
 ```
 
-APK появится в `app/build/outputs/apk/debug/app-debug.apk`. Готовая debug-сборка находится в `outputs/Tekst-debug.apk`.
+APK появится в `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Локальный HTTPS-приёмник
 
-Требуется Node.js 18+ и сертификат TLS для локального IP компьютера. Сгенерируйте сертификат с IP в Subject Alternative Name, затем задайте переменные окружения в PowerShell:
+Нужен Node.js 18+. Создай TLS-сертификат с IP компьютера в SAN, случайный токен и задай пути к PEM-файлам в PowerShell:
 
 ```powershell
 $env:WIFI_SERVER_CERT = (Resolve-Path .\server-cert.pem).Path
 $env:WIFI_SERVER_KEY = (Resolve-Path .\server-key.pem).Path
-$env:WIFI_UPLOAD_TOKEN = 'случайный-длинный-токен'
+$env:WIFI_UPLOAD_TOKEN = '<свой случайный токен>'
 node .\outputs\wifi-server\server.js
 ```
 
-Разрешите Node.js входящие подключения в частной сети Windows. Устройство и компьютер должны быть в одной Wi‑Fi сети. Сервер сохраняет полученные `.txt` в `outputs/wifi-server/received` и не перезаписывает существующие имена.
+Разреши Node.js входящие соединения в частной сети Windows. Телефон и компьютер должны быть в одной сети. Приёмник сохраняет файлы в `outputs/wifi-server/received`.
 
-Для APK задайте те же параметры локально в корневом `gradle.properties` (этот файл не следует публиковать):
+Для локальной сборки приложения укажи параметры в локальном `gradle.properties` и не публикуй этот файл:
 
 ```properties
-wifiServerIp=IP_КОМПЬЮТЕРА
-wifiUploadToken=ТОТ_ЖЕ_ТОКЕН
-wifiCertPin=SHA256_СЕРТИФИКАТА_БЕЗ_ДВОЕТОЧИЙ
+wifiServerIp=<IP компьютера>
+wifiUploadToken=<тот же случайный токен>
+wifiCertPin=<SHA-256 DER-сертификата в hex без разделителей>
 ```
 
-Отпечаток сертификата вычисляется как SHA-256 от DER-сертификата в нижнем регистре. Без локальных значений сетевая отправка отключена; сетевой адрес и секреты не хранятся в репозитории.
+Без этих значений сетевая отправка отключена. Не публикуй токен или приватный ключ сервера.
 
 ## Структура
 
-- `app/` — исходники Android-приложения.
-- `outputs/wifi-server/server.js` — локальный HTTPS-приёмник на Node.js.
-- `outputs/Tekst-debug.apk` — готовая отладочная APK.
-
+- `app/` — Android-приложение на Kotlin и Android Views.
+- `outputs/wifi-server/server.js` — HTTPS-приёмник без внешних npm-пакетов.
+- `outputs/Tekst-debug.apk` — готовая debug-сборка, если добавлена в репозиторий.

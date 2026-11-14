@@ -1,0 +1,10 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.jks
+*.keystore
+server-key.pem
+server-cert.pem
+gradle.properties.local
+outputs/wifi-server/received/

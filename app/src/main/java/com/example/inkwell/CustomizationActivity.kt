@@ -19,6 +19,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.view.WindowManager
 
 class CustomizationActivity : Activity() {
     private var hue = 145f
@@ -35,6 +36,8 @@ class CustomizationActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        window.decorView.systemUiVisibility = 0
         window.statusBarColor = BG
         window.navigationBarColor = BG
         val prefs = getSharedPreferences("appearance", MODE_PRIVATE)
@@ -157,11 +160,17 @@ class CustomizationActivity : Activity() {
         }
         buttons.addView(saveButton, LinearLayout.LayoutParams(-2, dp(40)))
         root.addView(buttons)
-        setContentView(ScrollView(this).apply {
+        val scroll = ScrollView(this).apply {
             isFillViewport = true
             clipToPadding = false
             addView(root)
-        })
+        }
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, bars.top, 0, bars.bottom)
+            insets
+        }
+        setContentView(scroll)
         updatePreview()
     }
 

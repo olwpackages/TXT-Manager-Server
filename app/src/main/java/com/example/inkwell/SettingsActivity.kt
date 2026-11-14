@@ -11,10 +11,13 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.view.WindowManager
 
 class SettingsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        window.decorView.systemUiVisibility = 0
         window.statusBarColor = BG
         window.navigationBarColor = BG
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
@@ -72,11 +75,17 @@ class SettingsActivity : Activity() {
             LinearLayout.LayoutParams(dp(76), dp(44))
         )
         root.addView(row, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
-        setContentView(ScrollView(this).apply {
+        val scroll = ScrollView(this).apply {
             isFillViewport = true
             clipToPadding = false
             addView(root)
-        })
+        }
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, bars.top, 0, bars.bottom)
+            insets
+        }
+        setContentView(scroll)
     }
 
     private fun rounded(color: Int, radius: Int) = GradientDrawable().apply {

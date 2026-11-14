@@ -52,11 +52,21 @@
 
 ## Node.js-сервер
 
-Нужны Node.js 18+ и OpenSSL. Телефон и компьютер должны быть в одной Wi-Fi сети.
+> Один сервер — два сценария: отправка TXT с телефона и раздача обновлений приложения. Телефон и компьютер должны быть в одной Wi-Fi сети.
 
-### 1. Задайте адрес и токен
+<div align="center">
+<table>
+<tr>
+<td align="center" width="33%"><strong>01</strong><br>укажите свой IP<br><sub>адрес компьютера в Wi-Fi</sub></td>
+<td align="center" width="33%"><strong>02</strong><br>создайте токен<br><sub>длинная случайная строка</sub></td>
+<td align="center" width="33%"><strong>03</strong><br>запустите сервер<br><sub>Node.js · HTTPS · порт 8765</sub></td>
+</tr>
+</table>
+</div>
 
-Откройте PowerShell в корне проекта. Подставьте IPv4 компьютера из настроек Wi-Fi и придумайте отдельный длинный токен:
+### Настройка
+
+Нужны Node.js 18+ и OpenSSL. В PowerShell из корня проекта задайте **собственный** LAN IPv4 компьютера и токен:
 
 ```powershell
 $ip = "<IP компьютера в локальной сети>"
@@ -65,7 +75,9 @@ $tlsDir = Join-Path $PWD "local-tls"
 New-Item -ItemType Directory -Force $tlsDir | Out-Null
 ```
 
-### 2. Создайте сертификат
+### Сертификат для HTTPS
+
+Сертификат привязывается к IP компьютера. Не используйте чужой или опубликованный приватный ключ.
 
 ```powershell
 openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 365 `
@@ -76,7 +88,7 @@ openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 365 `
   -addext "extendedKeyUsage=serverAuth"
 ```
 
-### 3. Запустите сервер
+### Запуск
 
 ```powershell
 $env:WIFI_SERVER_CERT = (Resolve-Path (Join-Path $tlsDir "server-cert.pem")).Path
@@ -85,35 +97,44 @@ $env:WIFI_UPLOAD_TOKEN = $token
 node .\outputs\wifi-server\server.js
 ```
 
-Разрешите Node.js входящие подключения для частной сети Windows и оставьте окно PowerShell открытым. Сервер принимает заметки в `outputs/wifi-server/received`.
+Оставьте окно PowerShell открытым и разрешите Node.js входящие подключения для частной сети Windows. Принятые заметки появятся в `outputs/wifi-server/received`.
 
-## Сборка приложения
+## Подключение приложения
 
-Укажите те же сетевые параметры в локальном корневом `gradle.properties`:
+Для отправки файлов приложение должно быть собрано с IP, токеном и pin сертификата сервера. Добавьте значения в локальный корневой `gradle.properties`:
 
 ```properties
 wifiServerIp=<IP компьютера>
-wifiUploadToken=<токен сервера>
-wifiCertPin=<SHA-256 отпечаток сертификата, DER, hex>
+wifiUploadToken=<тот же токен>
+wifiCertPin=<SHA-256 отпечаток DER-сертификата, hex>
 ```
 
-Отпечаток сертификата:
+Рассчитать pin:
 
 ```powershell
 openssl x509 -in .\local-tls\server-cert.pem -outform DER | openssl dgst -sha256
 ```
 
-Скопируйте hex после `=` в `wifiCertPin`. После смены сертификата обновите pin и пересоберите приложение. Для сборки нужны Android SDK 35 и JDK 17+:
+Вставьте hex-строку после `=` в `wifiCertPin`. При создании нового сертификата pin меняется. Соберите приложение:
 
 ```powershell
 gradle assembleDebug
 ```
 
-APK появится в `app/build/outputs/apk/debug/app-debug.apk`. Для отправки заметки выберите в приложении **Действия → Отправить заметку**.
+Затем на телефоне выберите **Действия → Отправить заметку**. APK сборки находится в `app/build/outputs/apk/debug/app-debug.apk`.
 
-## Обновления приложения
+## Публикация обновления
 
-Положите подписанный APK в `outputs/update/Tekst.apk`, затем заполните `outputs/update/latest.json`:
+<div align="center">
+<table>
+<tr>
+<td align="center" width="50%"><strong>1 · разместите APK</strong><br><code>outputs/update/Tekst.apk</code></td>
+<td align="center" width="50%"><strong>2 · опишите версию</strong><br><code>outputs/update/latest.json</code></td>
+</tr>
+</table>
+</div>
+
+Пример `latest.json`:
 
 ```json
 {
@@ -123,13 +144,13 @@ APK появится в `app/build/outputs/apk/debug/app-debug.apk`. Для от
 }
 ```
 
-`versionCode` должен быть выше версии на телефоне. Откройте **Действия → Проверить / скачать APK** и введите адрес сервера:
+Укажите `versionCode` выше установленного на телефоне. В приложении откройте **Действия → Проверить / скачать APK** и введите адрес:
 
 ```text
 https://<IP компьютера>:8765
 ```
 
-Приложение проверит `/update.json`, скачает `/Tekst.apk` и откроет системный установщик. Для обновления поверх установленной версии подпись APK должна совпадать.
+Сервер отдаст описание версии через `/update.json`, затем APK через `/Tekst.apk`. Android откроет системный установщик; для обновления поверх существующей версии подпись должна совпадать.
 ## Локальные секреты
 
 IP и токен задаются владельцем и не хранятся в исходниках. Не публикуйте `server-key.pem`, токен или локальный `gradle.properties`. Значения, включённые в APK, можно извлечь; используйте отдельный токен для личного сервера.

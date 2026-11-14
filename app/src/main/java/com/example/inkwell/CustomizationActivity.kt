@@ -17,6 +17,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 
 class CustomizationActivity : Activity() {
@@ -156,7 +157,11 @@ class CustomizationActivity : Activity() {
         }
         buttons.addView(saveButton, LinearLayout.LayoutParams(-2, dp(40)))
         root.addView(buttons)
-        setContentView(root)
+        setContentView(ScrollView(this).apply {
+            isFillViewport = true
+            clipToPadding = false
+            addView(root)
+        })
         updatePreview()
     }
 

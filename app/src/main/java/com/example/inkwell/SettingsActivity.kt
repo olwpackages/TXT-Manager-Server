@@ -9,6 +9,7 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 
 class SettingsActivity : Activity() {
@@ -71,7 +72,11 @@ class SettingsActivity : Activity() {
             LinearLayout.LayoutParams(dp(76), dp(44))
         )
         root.addView(row, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
-        setContentView(root)
+        setContentView(ScrollView(this).apply {
+            isFillViewport = true
+            clipToPadding = false
+            addView(root)
+        })
     }
 
     private fun rounded(color: Int, radius: Int) = GradientDrawable().apply {

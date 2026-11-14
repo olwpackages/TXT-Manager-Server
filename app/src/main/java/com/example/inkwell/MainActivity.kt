@@ -90,9 +90,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun buildScreen() {
+        val compact = resources.configuration.screenHeightDp < 760
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(12), dp(20), dp(10))
+            setPadding(dp(20), dp(if (compact) 6 else 12), dp(20), dp(if (compact) 4 else 10))
             setBackgroundColor(BG)
         }
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -143,7 +144,7 @@ class MainActivity : ComponentActivity() {
         tools.addView(textTool("Вырезать", true) { cutSelection() })
         tools.addView(textTool("Копировать", false) { copySelection() })
         tools.addView(textTool("Вставить", false) { pasteSelection() })
-        root.addView(tools, LinearLayout.LayoutParams(-1, dp(48)).apply { topMargin = dp(20) })
+        root.addView(tools, LinearLayout.LayoutParams(-1, dp(48)).apply { topMargin = dp(if (compact) 8 else 20) })
 
         editorFrame = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -162,7 +163,7 @@ class MainActivity : ComponentActivity() {
         editor = EditText(this).apply {
             setTextColor(EDITOR_TEXT); setHintTextColor(HINT); hint = "Начните писать…"
             textSize = 16f; typeface = Typeface.create("sans-serif", Typeface.NORMAL)
-            gravity = Gravity.TOP or Gravity.START; setPadding(0, dp(20), 0, dp(8))
+            gravity = Gravity.TOP or Gravity.START; setPadding(0, dp(if (compact) 10 else 20), 0, dp(8))
             background = null; setSingleLine(false); isVerticalScrollBarEnabled = true
             overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS; setTextIsSelectable(true)
         }
@@ -179,10 +180,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
-        root.addView(editorFrame, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(14) })
+        root.addView(editorFrame, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(if (compact) 8 else 14) })
 
         val footer = LinearLayout(this).apply {
-            gravity = Gravity.CENTER_VERTICAL; setPadding(dp(2), dp(14), dp(2), 0)
+            gravity = Gravity.CENTER_VERTICAL; setPadding(dp(2), dp(if (compact) 6 else 14), dp(2), 0)
         }
         status = TextView(this).apply { textSize = 12f; setTextColor(MUTED) }
         footer.addView(status, LinearLayout.LayoutParams(0, -2, 1f))
